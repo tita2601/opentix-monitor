@@ -9,26 +9,20 @@ def send_line(message):
 
     url = "https://api.line.me/v2/bot/message/push"
 
-
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
 
-
     data = {
-
         "to": user_id,
-
         "messages": [
             {
                 "type": "text",
                 "text": message
             }
         ]
-
     }
-
 
     response = requests.post(
         url,
@@ -36,10 +30,9 @@ def send_line(message):
         json=data
     )
 
-
+    print("LINE response:")
     print(response.status_code)
     print(response.text)
-
 
 
 if __name__ == "__main__":
