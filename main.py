@@ -4,7 +4,7 @@ import os
 import json
 
 
-EVENT_URL = "https://www.opentix.life/event/2076925048527581185"
+EVENT_URL = "https://www.opentix.life/event/2054505084713033728"
 
 STATUS_FILE = "status.json"
 
