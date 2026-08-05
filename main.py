@@ -14,7 +14,7 @@ print("開始開啟 OPENTIX")
 with sync_playwright() as p:
 
     browser = p.chromium.launch(
-        headless=True
+        headless=True,
         args=[
             "--disable-blink-features=AutomationControlled"
         ]
