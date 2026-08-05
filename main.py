@@ -1,155 +1,43 @@
-import requests
-from bs4 import BeautifulSoup
-import os
+from playwright.sync_api import sync_playwright
 import json
-import re
 
 
-CONFIG_FILE = "config.json"
-STATUS_FILE = "status.json"
+with open("config.json", "r") as f:
+    config = json.load(f)
 
 
-
-def load_config():
-
-    with open(CONFIG_FILE, "r") as f:
-        return json.load(f)
+url = config["event_url"]
 
 
+print("開始開啟 OPENTIX")
 
-def load_status():
+with sync_playwright() as p:
 
-    try:
-        with open(STATUS_FILE, "r") as f:
-            return json.load(f)
-
-    except:
-        return {
-            "notified": False
-        }
-
-
-
-def save_status(status):
-
-    with open(STATUS_FILE, "w") as f:
-        json.dump(status, f)
-
-
-
-def check_ticket(event_url, max_price):
-
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
-
-
-    response = requests.get(
-        event_url,
-        headers=headers
+    browser = p.chromium.launch(
+        headless=True
     )
 
-
-    soup = BeautifulSoup(
-        response.text,
-        "html.parser"
-    )
+    page = browser.new_page()
 
 
-    text = soup.get_text()
-
-
-    # 找出頁面中的價格
-    prices = re.findall(
-        r"\d{3,5}",
-        text
-    )
-
-
-    for price in prices:
-
-        price = int(price)
-
-        if price <= max_price:
-
-            return True, price
-
-
-    return False, None
-
-
-
-def send_line(message):
-
-    token = os.environ["LINE_TOKEN"]
-
-    user_id = os.environ["LINE_USER"]
-
-
-    url = "https://api.line.me/v2/bot/message/push"
-
-
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
-
-
-    data = {
-
-        "to": user_id,
-
-        "messages": [
-            {
-                "type": "text",
-                "text": message
-            }
-        ]
-    }
-
-
-    requests.post(
+    page.goto(
         url,
-        headers=headers,
-        json=data
+        wait_until="networkidle",
+        timeout=60000
     )
 
 
+    title = page.title()
 
-if __name__ == "__main__":
-
-
-    config = load_config()
-
-    status = load_status()
+    print("網頁標題：")
+    print(title)
 
 
-    found, price = check_ticket(
-        config["event_url"],
-        config["max_price"]
-    )
+    text = page.locator("body").inner_text()
 
 
-    if found and not status["notified"]:
+    print("網頁文字前500字：")
+    print(text[:500])
 
 
-        message = (
-            "🎫 OPENTIX售票提醒\n\n"
-            f"節目：{config['event_name']}\n"
-            f"符合價格：{price} 元\n"
-            f"限制：{config['max_price']} 元以下\n\n"
-            f"{config['event_url']}"
-        )
-
-
-        send_line(message)
-
-
-        status["notified"] = True
-
-        save_status(status)
-
-
-    else:
-
-        print("目前沒有符合條件的票")
+    browser.close()
