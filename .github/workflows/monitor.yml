@@ -23,6 +23,13 @@ jobs:
 
 
     - name: Run Python
+     env:
+
+    LINE_TOKEN:
+      ${{ secrets.LINE_TOKEN }}
+
+    LINE_USER:
+      ${{ secrets.LINE_USER }}
 
       run:
         python main.py
