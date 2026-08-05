@@ -2,11 +2,19 @@ import requests
 from bs4 import BeautifulSoup
 import os
 import json
+import re
 
 
-EVENT_URL = "https://www.opentix.life/event/2054505084713033728"
-
+CONFIG_FILE = "config.json"
 STATUS_FILE = "status.json"
+
+
+
+def load_config():
+
+    with open(CONFIG_FILE, "r") as f:
+        return json.load(f)
+
 
 
 def load_status():
@@ -16,7 +24,6 @@ def load_status():
             return json.load(f)
 
     except:
-
         return {
             "notified": False
         }
@@ -30,7 +37,7 @@ def save_status(status):
 
 
 
-def check_ticket():
+def check_ticket(event_url, max_price):
 
     headers = {
         "User-Agent": "Mozilla/5.0"
@@ -38,7 +45,7 @@ def check_ticket():
 
 
     response = requests.get(
-        EVENT_URL,
+        event_url,
         headers=headers
     )
 
@@ -52,19 +59,23 @@ def check_ticket():
     text = soup.get_text()
 
 
-    keywords = [
-        "立即購票",
-        "購票"
-    ]
+    # 找出頁面中的價格
+    prices = re.findall(
+        r"\d{3,5}",
+        text
+    )
 
 
-    for word in keywords:
+    for price in prices:
 
-        if word in text:
-            return True
+        price = int(price)
+
+        if price <= max_price:
+
+            return True, price
 
 
-    return False
+    return False, None
 
 
 
@@ -79,13 +90,8 @@ def send_line(message):
 
 
     headers = {
-
-        "Authorization":
-        f"Bearer {token}",
-
-        "Content-Type":
-        "application/json"
-
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
     }
 
 
@@ -99,7 +105,6 @@ def send_line(message):
                 "text": message
             }
         ]
-
     }
 
 
@@ -114,29 +119,37 @@ def send_line(message):
 if __name__ == "__main__":
 
 
+    config = load_config()
+
     status = load_status()
 
 
-    ticket = check_ticket()
+    found, price = check_ticket(
+        config["event_url"],
+        config["max_price"]
+    )
 
 
-    if ticket and not status["notified"]:
+    if found and not status["notified"]:
 
 
-        send_line(
-            "🎫 OPENTIX可能開放購票！\n"
-            + EVENT_URL
+        message = (
+            "🎫 OPENTIX售票提醒\n\n"
+            f"節目：{config['event_name']}\n"
+            f"符合價格：{price} 元\n"
+            f"限制：{config['max_price']} 元以下\n\n"
+            f"{config['event_url']}"
         )
 
 
-        status["notified"] = True
+        send_line(message)
 
+
+        status["notified"] = True
 
         save_status(status)
 
 
     else:
 
-        print(
-            "沒有新的售票通知"
-        )
+        print("目前沒有符合條件的票")
