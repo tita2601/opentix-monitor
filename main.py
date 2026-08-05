@@ -1,16 +1,39 @@
 import requests
 from bs4 import BeautifulSoup
 import os
+import json
 
 
 EVENT_URL = "https://www.opentix.life/event/2076925048527581185"
+
+STATUS_FILE = "status.json"
+
+
+def load_status():
+
+    try:
+        with open(STATUS_FILE, "r") as f:
+            return json.load(f)
+
+    except:
+
+        return {
+            "notified": False
+        }
+
+
+
+def save_status(status):
+
+    with open(STATUS_FILE, "w") as f:
+        json.dump(status, f)
+
 
 
 def check_ticket():
 
     headers = {
-        "User-Agent":
-        "Mozilla/5.0"
+        "User-Agent": "Mozilla/5.0"
     }
 
 
@@ -26,20 +49,18 @@ def check_ticket():
     )
 
 
-    page_text = soup.get_text()
+    text = soup.get_text()
 
 
     keywords = [
         "立即購票",
-        "購票",
-        "票價"
+        "購票"
     ]
 
 
     for word in keywords:
 
-        if word in page_text:
-
+        if word in text:
             return True
 
 
@@ -70,16 +91,13 @@ def send_line(message):
 
     data = {
 
-        "to":
-        user_id,
+        "to": user_id,
 
-        "messages":[
-
+        "messages": [
             {
-            "type":"text",
-            "text":message
+                "type": "text",
+                "text": message
             }
-
         ]
 
     }
@@ -96,16 +114,29 @@ def send_line(message):
 if __name__ == "__main__":
 
 
-    if check_ticket():
+    status = load_status()
+
+
+    ticket = check_ticket()
+
+
+    if ticket and not status["notified"]:
+
 
         send_line(
-            "🎫 OPENTIX可能有票！\n"
+            "🎫 OPENTIX可能開放購票！\n"
             + EVENT_URL
         )
+
+
+        status["notified"] = True
+
+
+        save_status(status)
 
 
     else:
 
         print(
-            "目前沒有偵測到售票"
+            "沒有新的售票通知"
         )
