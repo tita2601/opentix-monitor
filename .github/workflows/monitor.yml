@@ -1,4 +1,4 @@
-name: OPENTIX Monitor Test
+name: Test
 
 on:
   workflow_dispatch:
@@ -8,22 +8,5 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install packages
-        run: |
-          pip install -r requirements.txt
-
-      - name: Run Python
-        env:
-          LINE_TOKEN: ${{ secrets.LINE_TOKEN }}
-          LINE_USER: ${{ secrets.LINE_USER }}
-
-        run:
-          python main.py
+      - name: Test Python
+        run: python --version
