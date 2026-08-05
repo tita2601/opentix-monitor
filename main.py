@@ -29,22 +29,18 @@ with sync_playwright() as p:
         timeout=60000
     )
 
-page.wait_for_timeout(15000)
+    page.wait_for_timeout(15000)
 
+    print("網頁標題：")
+    print(page.title())
 
-print("網頁標題：")
-print(page.title())
+    text = page.locator("body").inner_text()
 
+    print("網頁文字長度：")
+    print(len(text))
 
-text = page.locator("body").inner_text()
-
-
-print("網頁文字長度：")
-print(len(text))
-
-
-print("網頁最後1000字：")
-print(text[-1000:])
+    print("網頁最後1000字：")
+    print(text[-1000:])
 
 
     browser.close()
