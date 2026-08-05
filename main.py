@@ -25,10 +25,10 @@ with sync_playwright() as p:
 
     page.goto(
         url,
-        wait_until="networkidle",
+        wait_until="domcontentloaded",
         timeout=60000
     )
-    
+
     page.wait_for_timeout(5000)
 
     title = page.title()
