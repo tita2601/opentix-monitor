@@ -47,9 +47,9 @@ jobs:
           python main.py
           
       - name: Save status
-        run:
+        run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git add status.json
-          git commit -m "Update ticket status" || exit 0
+          git commit -m "Update ticket status" || echo "No changes to commit"
           git push
