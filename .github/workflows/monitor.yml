@@ -50,7 +50,9 @@ jobs:
         run:
           python main.py
       - name: Save status cache
-        uses: actions/cache@v4
-        with:
-          path: status.json
-          key: opentix-status
+        run:
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add status.json
+          git commit -m "Update ticket status" || exit 0
+          git push
