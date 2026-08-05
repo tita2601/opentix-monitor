@@ -15,6 +15,9 @@ with sync_playwright() as p:
 
     browser = p.chromium.launch(
         headless=True
+        args=[
+            "--disable-blink-features=AutomationControlled"
+        ]
     )
 
     page = browser.new_page()
@@ -25,7 +28,8 @@ with sync_playwright() as p:
         wait_until="networkidle",
         timeout=60000
     )
-
+    
+    page.wait_for_timeout(5000)
 
     title = page.title()
 
