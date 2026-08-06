@@ -30,26 +30,20 @@ with sync_playwright() as p:
     )
 
     page.wait_for_timeout(15000)
+    # 再等一下讓畫面完全載入
+    page.wait_for_timeout(3000)
 
-    print("========== Buttons ==========")
+    print("開始點擊『查看』")
 
-    buttons = page.locator("button").all_inner_texts()
+    page.get_by_role("button", name="查看").first.click()
 
-    for i, b in enumerate(buttons):
-        print(i, b)
+    page.wait_for_timeout(5000)
 
-    print("========== Links ==========")
-
-    links = page.locator("a").all_inner_texts()
-
-    for i, t in enumerate(links[:100]):
-        if t.strip():
-            print(i, t)
-        
-    print("網頁標題：")
-    print(page.title())
+    print("===== 點擊查看後 =====")
 
     text = page.locator("body").inner_text()
+
+    print(text[-3000:])
 
     print("網頁文字長度：")
     print(len(text))
