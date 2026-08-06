@@ -31,6 +31,21 @@ with sync_playwright() as p:
 
     page.wait_for_timeout(15000)
 
+    print("========== Buttons ==========")
+
+    buttons = page.locator("button").all_inner_texts()
+
+    for i, b in enumerate(buttons):
+        print(i, b)
+
+    print("========== Links ==========")
+
+    links = page.locator("a").all_inner_texts()
+
+    for i, t in enumerate(links[:100]):
+        if t.strip():
+            print(i, t)
+        
     print("網頁標題：")
     print(page.title())
 
