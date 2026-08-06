@@ -36,7 +36,7 @@ with sync_playwright() as p:
     print("開始點擊『查看』")
 
     buttons = page.get_by_text("查看")
-
+    print("找到查看按鈕")
     print("查看總數：", buttons.count())
 
     for i in range(buttons.count()):
@@ -46,9 +46,18 @@ with sync_playwright() as p:
         )
 
 
-    buttons.nth(1).click(timeout=10000)
+    print("準備點擊第2個查看")
 
-    print("===== 點擊查看後 =====")
+    buttons.nth(1).click(
+        timeout=10000,
+        force=True
+    )
+
+    print("已完成點擊查看")
+
+    page.wait_for_timeout(5000)
+
+    print("開始讀取頁面")
 
     text = page.locator("body").inner_text()
 
