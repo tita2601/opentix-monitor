@@ -35,7 +35,7 @@ with sync_playwright() as p:
 
     print("開始點擊『查看』")
 
-    page.get_by_role("button", name="查看").first.click()
+    page.get_by_text("查看").first.click(timeout=10000)
 
     page.wait_for_timeout(5000)
 
