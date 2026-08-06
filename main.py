@@ -57,8 +57,4 @@ with sync_playwright() as p:
     print("網頁文字長度：")
     print(len(text))
 
-print("網頁最後1000字：")
-print(text[-1000:])
-
-
     browser.close()
