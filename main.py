@@ -33,34 +33,26 @@ with sync_playwright() as p:
     # 再等一下讓畫面完全載入
     page.wait_for_timeout(3000)
 
-    print("開始點擊『查看』")
-
-    buttons = page.get_by_text("查看")
-    print("找到查看按鈕")
-    print("查看總數：", buttons.count())
-
-    for i in range(buttons.count()):
-        print(
-            i,
-            buttons.nth(i).is_visible()
-        )
-
-
-    print("準備點擊第2個查看")
-
-    buttons.nth(1).click(
-        timeout=10000,
-        force=True
-    )
-
-    print("已完成點擊查看")
-
-    page.wait_for_timeout(5000)
-
-    print("開始讀取頁面")
+    print("===== 找日期與票價文字 =====")
 
     text = page.locator("body").inner_text()
 
+    keywords = [
+        "2026",
+        "12月",
+        "3800",
+        "票",
+        "元",
+        "NT"
+    ]
+
+    for k in keywords:
+        print(
+            k,
+            k in text
+        )
+
+    print("===== 後3000字 =====")
     print(text[-3000:])
 
     print("網頁文字長度：")
