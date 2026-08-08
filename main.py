@@ -88,6 +88,15 @@ with sync_playwright() as p:
             ]
         ):
             print(line)
+    print("========== 19:30 附近內容 ==========")
+
+    for i, line in enumerate(lines):
+        if "19:30" in line:
+            start = max(0, i - 10)
+            end = min(len(lines), i + 11)
+
+            for nearby_line in lines[start:end]:
+                print(nearby_line)
 
     # 輸出最後 5000 字
     print("========== 網頁最後 5000 字 ==========")
