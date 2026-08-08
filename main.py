@@ -36,6 +36,14 @@ with sync_playwright() as p:
 
     # 給 OPENTIX JavaScript 足夠時間載入
     page.wait_for_timeout(15000)
+    # 關閉 Google Translate 提示視窗
+    try:
+        got_it = page.get_by_text("Got it")
+        if got_it.is_visible():
+            got_it.click()
+            print("已關閉翻譯提示")
+    except:
+        print("沒有找到翻譯提示")
 
     print("開始分析 OPENTIX 頁面")
 
