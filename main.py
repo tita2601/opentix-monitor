@@ -41,7 +41,7 @@ def send_line(message):
     }
 
     response = requests.post(
-        "https://api.line.api/v2/bot/message/push",
+        "https://api.line.me/v2/bot/message/push",
         headers=headers,
         json=data,
         timeout=30
