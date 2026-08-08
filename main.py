@@ -24,6 +24,7 @@ LINE_USER = os.environ.get("LINE_USER")
 # =========================
 
 def send_line(message):
+
     headers = {
         "Authorization": f"Bearer {LINE_TOKEN}",
         "Content-Type": "application/json"
@@ -40,16 +41,13 @@ def send_line(message):
     }
 
     response = requests.post(
-        "https://api.line.me/v2/bot/message/push",
+        "https://api.line.api/v2/bot/message/push",
         headers=headers,
         json=data,
         timeout=30
     )
 
     print("LINE 狀態：", response.status_code)
-
-    if response.status_code != 200:
-        print(response.text)
 
 
 # =========================
@@ -86,11 +84,13 @@ with sync_playwright() as p:
 
     page.wait_for_timeout(15000)
 
+
     # =========================
     # 關閉翻譯提示
     # =========================
 
     try:
+
         got_it = page.get_by_text("Got it")
 
         if got_it.is_visible():
@@ -98,31 +98,35 @@ with sync_playwright() as p:
             print("已關閉翻譯提示")
 
     except Exception:
+
         print("沒有找到翻譯提示")
+
 
     print("開始分析 OPENTIX")
 
+
     # =========================
-    # 找到電腦配位
+    # 找電腦配位
     # =========================
 
     seat_buttons = page.get_by_text("電腦配位")
 
-    print("電腦配位數量：", seat_buttons.count())
+    print(
+        "電腦配位數量：",
+        seat_buttons.count()
+    )
 
-    if seat_buttons.count() == 0:
-        print("找不到電腦配位")
-        browser.close()
-        exit()
-
-    # 點擊第一個可見的電腦配位
     clicked = False
 
     for i in range(seat_buttons.count()):
 
         if seat_buttons.nth(i).is_visible():
 
-            print("點擊第", i, "個電腦配位")
+            print(
+                "點擊第",
+                i,
+                "個電腦配位"
+            )
 
             seat_buttons.nth(i).click(
                 timeout=10000
@@ -131,14 +135,19 @@ with sync_playwright() as p:
             clicked = True
             break
 
+
     if not clicked:
-        print("沒有找到可點擊的電腦配位")
+
+        print("找不到可以點擊的電腦配位")
+
         browser.close()
         exit()
+
 
     print("電腦配位已點擊")
 
     page.wait_for_timeout(5000)
+
 
     # =========================
     # 讀取頁面
@@ -146,46 +155,63 @@ with sync_playwright() as p:
 
     text = page.locator("body").inner_text()
 
-    print("========== 票價資料 ==========")
-
-    print(text[-5000:])
-
-    # =========================
-    # 取得場次日期
-    # =========================
-
     lines = [
         line.strip()
         for line in text.splitlines()
         if line.strip()
     ]
 
+
+    # =========================
+    # 找場次
+    # =========================
+
     show_time = None
 
-    for i, line in enumerate(lines):
+    for line in lines:
 
-        if "2026/" in line and ":" in line:
+        if (
+            line.startswith("2026/")
+            and ":" in line
+        ):
 
             show_time = line
             break
 
-    print("場次：", show_time)
+
+    print(
+        "場次：",
+        show_time
+    )
+
 
     # =========================
-    # 分析票價
+    # 找票價與剩餘數量
     # =========================
 
     available_tickets = []
+
+    print("========== 票價分析 ==========")
+
 
     for i, line in enumerate(lines):
 
         if "元區" not in line:
             continue
 
+
+        # -------------------------
+        # 取得票價
+        # -------------------------
+
         try:
 
             price_text = line.split("$")[1]
-            price_text = price_text.replace(",", "")
+
+            price_text = price_text.replace(
+                ",",
+                ""
+            )
 
             price = int(price_text)
 
@@ -193,30 +219,54 @@ with sync_playwright() as p:
 
             continue
 
-        # 往後找剩餘數量
+
+        # -------------------------
+        # 找最近的「剩：」
+        # -------------------------
+
         remaining = None
 
-        for next_line in lines[i + 1:i + 5]:
+
+        for j in range(
+            i + 1,
+            min(i + 15, len(lines))
+        ):
+
+            next_line = lines[j]
+
 
             if next_line.startswith("剩："):
 
-                try:
+                remaining_text = (
+                    next_line
+                    .replace("剩：", "")
+                    .strip()
+                )
 
-                    remaining_text = next_line.replace(
-                        "剩：",
-                        ""
+
+                # 「剩：0 ／ 完售」
+                if "／" in remaining_text:
+
+                    remaining_text = (
+                        remaining_text
+                        .split("／")[0]
+                        .strip()
                     )
 
-                    remaining_text = remaining_text.split("/")[0]
+
+                try:
 
                     remaining = int(
-                        remaining_text.strip()
+                        remaining_text
                     )
 
                 except Exception:
-                    pass
+
+                    remaining = None
+
 
                 break
+
 
         print(
             "票價：",
@@ -225,9 +275,10 @@ with sync_playwright() as p:
             remaining
         )
 
-        # =========================
-        # 價格符合條件
-        # =========================
+
+        # -------------------------
+        # 判斷是否符合條件
+        # -------------------------
 
         if (
             price <= PRICE_LIMIT
@@ -242,20 +293,29 @@ with sync_playwright() as p:
                 }
             )
 
+
     # =========================
-    # 判斷是否需要通知
+    # LINE 通知
     # =========================
 
     if available_tickets:
 
-        message = "🎫《神隱少女》舞台劇\n\n"
+        message = (
+            "🎫《神隱少女》舞台劇\n\n"
+        )
+
 
         if show_time:
-            message += f"📅 場次：{show_time}\n"
 
-        message += "\n"
+            message += (
+                f"📅 場次：{show_time}\n"
+            )
 
-        message += "🎟️ 找到 3800 元以下票券：\n"
+
+        message += (
+            "\n🎟️ 找到 3800 元以下票券：\n"
+        )
+
 
         for ticket in available_tickets:
 
@@ -264,14 +324,20 @@ with sync_playwright() as p:
                 f"剩餘 {ticket['remaining']} 張\n"
             )
 
-        message += "\n"
-        message += "🔔 請盡快前往 OPENTIX 查看！"
 
-        print("========== 發送 LINE ==========")
+        message += (
+            "\n🔔 請盡快前往 OPENTIX 查看！"
+        )
+
+
+        print(
+            "========== 發送 LINE =========="
+        )
 
         print(message)
 
         send_line(message)
+
 
     else:
 
@@ -279,6 +345,8 @@ with sync_playwright() as p:
             "目前沒有符合條件的票券"
         )
 
+
     browser.close()
+
 
 print("程式執行完成")
