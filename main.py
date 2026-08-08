@@ -89,7 +89,18 @@ with sync_playwright() as p:
         ):
             print(line)
     print("========== 19:30 附近內容 ==========")
+    print("========== 電腦配位按鈕 ==========")
 
+    seat_buttons = page.get_by_text("電腦配位")
+
+    print("找到數量：", seat_buttons.count())
+
+    for i in range(seat_buttons.count()):
+        print(
+            i,
+            "可見：",
+            seat_buttons.nth(i).is_visible()
+        )
     for i, line in enumerate(lines):
         if "19:30" in line:
             start = max(0, i - 10)
