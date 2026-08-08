@@ -101,6 +101,19 @@ with sync_playwright() as p:
             "可見：",
             seat_buttons.nth(i).is_visible()
         )
+    print("開始點擊電腦配位")
+
+    seat_buttons.nth(0).click(timeout=10000)
+
+    print("電腦配位已點擊")
+
+    page.wait_for_timeout(5000)
+
+    print("========== 點擊後頁面 ==========")
+
+    text = page.locator("body").inner_text()
+
+    print(text[-5000:])
     for i, line in enumerate(lines):
         if "19:30" in line:
             start = max(0, i - 10)
